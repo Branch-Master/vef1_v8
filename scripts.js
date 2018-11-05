@@ -15,38 +15,45 @@ const text = (() => {
     _form.addEventListener('submit', formHandler);
 
     _items.addEventListener('change',finish);
-    
-    var spans = document.getElementsByClassName("item__text");
 
-    for(var i=0; i<spans.length;i++){
-      spans[i].onclick = edit;
-      
-    }
-    
-  
+    newlistener(); //hjálparfall
   }
+
+  //hjálparfall sem er event listener fyrir span því spans.length breytist 
+  //þegar kallað er á add(value)
+  function newlistener(){
+    var spans = document.getElementsByClassName("item__text");
+    var del_btns = document.getElementsByClassName("item__button");
+
+  for(var i=0; i<spans.length;i++){
+      spans[i].onclick = edit;
+  }
+  for(var i=0; i<del_btns.length;i++){
+    del_btns[i].onclick = deleteItem;
+  }
+  }
+  
+  
+
 
   function formHandler(e) {
    e.preventDefault();
 
-    var value = document.getElementsByClassName('form__input')[0].value;
+    const input = document.getElementsByClassName('form__input')[0];
    
-    if(value.trim().length > 0 ){
-      add(value); 
+    if(input.value.trim().length > 0 ){
+      add(input.value); 
+      input.value = '';
     }
-   
-
-    console.log('halló heimur');
   }
 
   // event handler fyrir það að klára færslu
+
   function finish(e) {
     e.preventDefault();
-    console.log("finish");
     
-
     var checkboxes = document.getElementsByClassName("item__checkbox");
-
+    
     for(var i =0; i< checkboxes.length; i++){
       if(checkboxes[i].checked === true){
           checkboxes[i].parentElement.className="item item--done";
@@ -55,39 +62,49 @@ const text = (() => {
           checkboxes[i].parentElement.className="item";
       }
     }
-
+  
 }
 
   // event handler fyrir það að breyta færslu
   function edit(e) {
     e.preventDefault();
+
+    var input = document.createElement("input");//býr til nýtt element
+    input.type = "text";
+    input.value = this.innerHTML;
     
-    console.log(this);
+    input.className = "item__text";
+    this.replaceWith(input); //this er span elementið sem ýtt var á
+    input.focus(); //svo það sé hægt að byrja skrifa strax
+    
+    input.addEventListener("keydown",function(e){
+      if(e.keyCode == 13){
+        
+        var event = new Event('submit');
+        input.addEventListener('submit',commit);
+        input.dispatchEvent(event);
+        input.removeEventListener('submit',commit);
 
-    var $input = ("<input>", {val: (this).innerHTML ,type: "text"});
-
-  $input.className="item__text";
-  this.replaceWith($input);
-  $input.click("blur", commit);
-  $input.select();
-   
+      }
+    });
+     
   }
 
   // event handler fyrir það að klára að breyta færslu
   function commit(e) {
-    var $span = $("<span>", {text: $(this).val()});
 
-  $span.addClass("loadNum");
-  $(this).replaceWith($span);
-  $span.on("click", switchToInput);
-    
+    e.preventDefault();
 
+    var span = document.createElement("span");
+    span.className = "item__text";
+    span.innerHTML = this.value;
+    this.replaceWith(span);
+    span.onclick = edit;
   }
 
   // fall sem sér um að bæta við nýju item
   function add(value) {
 
-    var ul = document.getElementById("item__list");
     var li = document.createElement("li");
     li.className = "item";
 
@@ -95,12 +112,13 @@ const text = (() => {
         checkbox.type = "checkbox";
         checkbox.value = 0;
         checkbox.className = "item__checkbox";
+        
     
     li.appendChild(checkbox);
 
     var text = document.createElement("span");
-    text.className = "item__text";
-    text.innerHTML = value;
+        text.className = "item__text";
+        text.innerHTML = value;
 
     li.appendChild(text);
 
@@ -109,16 +127,18 @@ const text = (() => {
         button.innerHTML = "Eyða";
     li.appendChild(button);
 
-    ul.appendChild(li);
+    items.appendChild(li);
+    newlistener();
     
   }
 
-  var add_button = document.getElementsByClassName('form__button');
-  add_button.onclick = add;
+
+
+
   // event handler til að eyða færslu
   function deleteItem(e) {
-    console.log("delete");
-
+    var parent = this.parentElement;
+    parent.parentElement.removeChild(parent);
   }
 
   // hjálparfall til að útbúa element
